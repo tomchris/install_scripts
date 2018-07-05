@@ -1,0 +1,41 @@
+---
+- hosts: all
+  tasks:
+    - name: update, upgrade and install base packages
+      apt:
+        update_cache: yes
+        cache_valid_time: 2400
+        pkg: "{{ item }}"      
+        state: present
+      with_items:
+        - gcc 
+        - python-dev 
+        - libffi-dev 
+        - libssl-dev 
+        - python-pip 
+        - libxml2-dev 
+        - libxslt1-dev
+    - name: install tox via pip
+      pip:
+        name: tox
+    - name: install ara via pip
+      pip:
+        name: ara
+    - name: get path to ara ansible modules
+      shell: python -c "import os,ara; print(os.path.dirname(ara.__file__))"
+      register: ara_path
+    - name: configure ansible to look for ara modules
+      blockinfile:
+        path: /etc/ansible/ansible.cfg
+        state: present
+        insertafter: EOF
+        block: |
+          # callback_plugins configuration is required for the ARA callback
+          callback_plugins = "{{ ara_path }}"/plugins/callbacks
+          # action_plugins and library configuration is required for the ara_record and ara_read modules
+          action_plugins = "{{ ara_path }}"/plugins/actions
+          library = "{{ ara_path }}"/plugins/modules
+          # EOF
+
+    - name: start webserver
+      shell: "ara-manage runserver &"

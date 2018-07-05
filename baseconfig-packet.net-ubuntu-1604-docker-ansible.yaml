@@ -1,0 +1,42 @@
+---
+- hosts: all
+  become: true
+  become_user: root
+  tasks:
+  - name: install prereq packages
+    apt:
+      update_cache: no
+      pkg: "{{ item }}"
+      state: present
+    with_items:
+      - apt-transport-https 
+      - ca-certificates
+      - curl
+      - software-properties-common     
+      - htop 
+      - git
+  - name: Import Docker GPG key
+    apt_key:
+      url: 'https://apt.dockerproject.org/gpg'
+      state: present
+  - name: Import ansible repository
+    apt_repository: 
+      repo: 'ppa:ansible/ansible'
+      state: present
+  - name: Import docker repository
+    apt_repository: 
+      repo: 'deb https://apt.dockerproject.org/repo ubuntu-xenial main' 
+      state: present
+  - name: Update and upgrade apt packages
+    apt:
+      upgrade: yes
+      update_cache: yes
+  - name: install ansible and docker 
+    apt:
+      update_cache: yes
+      cache_valid_time: 2400
+      pkg: "{{ item }}"      
+      state: present
+    with_items:
+      - ansible
+      - docker-engine
