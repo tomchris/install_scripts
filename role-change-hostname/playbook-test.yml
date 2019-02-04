@@ -1,0 +1,12 @@
+---
+- name: Change hostname
+  hosts: localhost 
+  become: true
+  become_method: sudo
+  vars:
+    new_hostname: test
+    new_domain: example.com
+  tasks: 
+    - name: test
+      include_tasks: tasks/main.yml
+

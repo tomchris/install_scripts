@@ -6,15 +6,16 @@
   - name: install prereq packages
     apt:
       update_cache: no
-      pkg: "{{ item }}"
+      pkg: "{{ packages }}"
       state: present
-    with_items:
-      - apt-transport-https 
-      - ca-certificates
-      - curl
-      - software-properties-common     
-      - htop 
-      - git
+    vars:
+      packages:
+        - apt-transport-https 
+        - ca-certificates
+        - curl
+        - software-properties-common     
+        - htop 
+        - git
   - name: Import Docker GPG key
     apt_key:
       url: 'https://apt.dockerproject.org/gpg'
@@ -39,4 +40,4 @@
       state: present
     with_items:
       - ansible
-      - docker-engine
+      - docker-ce

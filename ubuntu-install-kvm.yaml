@@ -1,0 +1,51 @@
+---
+- name: ensure kvm acceleration is available
+  command: "egrep -c '(vmx|svm)' /proc/cpuinfo"
+  register: kvm-ok
+
+- fail:
+    msg: "Host does not support KVM Acceleration"
+  when: {{ kvm-ok }} is 0
+
+- name: apt install kvm
+  apt:
+    cache_valid_time: 2400
+    pkg: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - bridge-utils
+      - cloud-utils
+      - cpu-checker
+      - qemu-kvm
+      - libvirt-bin
+
+- name: Modify sysctl.conf
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    sysctl_set: yes
+    state: present
+    reload: yes
+  with_items:
+    - key: net.ipv4.ip_forward
+      value: 1
+    - key: net.ipv4.conf.all.rp_filter
+      value: 0
+    - key: net.ipv4.conf.default.rp_filter
+      value: 0
+    - key: net.bridge.bridge-nf-call-iptables
+      value: 1
+
+- name: remove virsh default network
+  virt_net:
+    name: default
+    state: absent
+  notify:
+    - restart libvirt
+
+handlers:
+- name: restart libvirt
+  systemd:
+    name: libvirt-bin
+    state: reloaded

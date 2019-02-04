@@ -1,0 +1,17 @@
+---
+  tasks:
+    - name: new_hostname
+      debug:
+        msg: "{{ new_hostname }}"
+    - name: new_domain 
+      debug:
+        msg: "{{ new_domain }}"
+    - name: write /etc/hosts
+      template:
+        src: hosts.j2
+        dest: "tmp-hosts"
+    - name: write /etc/hostname
+      template:
+        src: hostname.j2
+        dest: "tmp-hostname"
+
